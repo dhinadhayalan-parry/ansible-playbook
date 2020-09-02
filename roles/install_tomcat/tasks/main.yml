@@ -1,0 +1,53 @@
+---
+  - name: "Adding tomcat group. "
+    group:
+      name: tomcat
+
+  - name: "Adding tomcat user. "
+    user:
+      name: tomcat
+      group: tomcat
+      home: /user/share/tomcat
+      createhome: no
+
+  - name: "Creating data directory. "
+    file:
+      path: /opt/tomcat
+      state: directory
+      mode: 0755
+
+  - name: "Downloading & unarchiving Tomacat 9 package. "
+    unarchive:
+      src: https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.16/bin/apache-tomcat-9.0.16.tar.gz
+      dest: /opt/tomcat
+      remote_src: yes
+      extra_opts: [--strip-components=1]
+
+  - name: "Updating ownership for the tomcat data directory."
+    file:
+      path: /opt/tomcat
+      owner: tomcat
+      group: tomcat
+      mode: "u+rwx,g+rx,o=rx"
+      recurse: yes
+      state: directory
+
+  - name: "Copying Tomcat service remote."
+    template:
+       src: tomcat_service.j2
+       dest: /etc/systemd/system/tomcat.service
+       mode: 0755
+
+  - name: Set UI access credentials
+    template:
+      src: tomcat-users_xml.j2
+      dest: /opt/tomcat/conf/tomcat-users.xml
+    notify: restart tomcat
+
+  - name: "Start and enable Tomcat service"
+    systemd:
+      name: tomcat
+      state: started
+      enabled: true
+      daemon_reload: true
+    become: true

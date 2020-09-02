@@ -1,0 +1,4 @@
+---
+- name: "Installing Docker in Ubuntu. "
+  shell: curl -sSL https://get.docker.io/ | sudo sh
+  sudo: yes

@@ -1,0 +1,48 @@
+---
+- name: "Fetch user home. "
+  shell: 'getent passwd {{ default_ssh_user }} | cut -d":" -f 6'
+  register: register_user_home
+  changed_when: False
+
+- name: "Set user home. "
+  set_fact:
+    user_home: '{{ register_user_home.stdout }}'
+
+- name: "Ensure home/.ssh folder exists. "
+  file:
+    path: '{{ user_home }}/.ssh'
+    state: directory
+    mode: 0700
+
+- name: "Get if id_rsa exists. "
+  stat:
+    path: '{{ user_home }}/.ssh/id_rsa'
+  register: id_rsa_existence_status
+
+- name: "Get if id_rsa.pub exists. "
+  stat:
+    path: '{{ user_home }}/.ssh/id_rsa.pub'
+  register: id_rsa_pub_existence_status
+
+- name: "Remove keys if both id_rsa and id_rsa.pub not present. "
+  file:
+    path: '{{ item }}'
+    state: absent
+  with_items:
+    - '{{ user_home }}/.ssh/id_rsa'
+    - '{{ user_home }}/.ssh/id_rsa.pub'
+  when:
+         (    (id_rsa_existence_status.stat.isreg is not defined or not id_rsa_existence_status.stat.isreg )
+          and (id_rsa_pub_existence_status.stat.isreg is defined and
+               id_rsa_pub_existence_status.stat.isreg ) )
+      or (    (id_rsa_pub_existence_status.stat.isreg is not defined or not
+               id_rsa_pub_existence_status.stat.isreg )
+          and (id_rsa_pub_existence_status.stat.isreg is defined and
+               id_rsa_pub_existence_status.stat.isreg ) )
+
+- name: "ssh key generation. "
+  command: ssh-keygen -t rsa -b 2048 -N '' -f {{ user_home }}/.ssh/id_rsa
+  when: (     id_rsa_existence_status.stat.isreg is not defined or
+          not id_rsa_existence_status.stat.isreg or
+              id_rsa_pub_existence_status.stat.isreg is not defined or
+          not id_rsa_pub_existence_status.stat.isreg )

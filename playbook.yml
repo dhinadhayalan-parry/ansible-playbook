@@ -1,0 +1,14 @@
+---
+
+- name:        Ansible playbook
+  hosts:       all
+  become:      yes
+  remote_user: ubuntu
+  become_user: root
+  roles:
+    - {name: create_service_user, tags: create_service_user}
+    - {name: create_ssh, tags: create_ssh}
+    - {name: install_docker, tags: install_docker}
+    - {name: install_jdk, tags: install_jdk}
+    - {name: install_kubernetes, tags: install_kubernetes}
+    - {name: install_tomcat, tags: install_tomcat}

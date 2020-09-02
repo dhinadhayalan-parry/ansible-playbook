@@ -1,0 +1,31 @@
+---
+- name: "Kubernetes Workers Setup"
+  hosts: k8s-workers
+  - name: Update apt cache
+    apt: update_cache=yes
+
+  - name: Disable swap
+    shell: swapoff -a
+
+  - shell: sysctl net.bridge.bridge-nf-call-iptables=1
+
+  - name: Install packages
+    apt: name=apt-transport-https update_cache=yes
+
+  - name: Add key
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+
+  - name: Add source list for kubernetes
+    shell: |
+       cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
+       > deb http://apt.kubernetes.io/ kubernetes-xenial main
+       > EOF
+  - name: Update apt cache
+    apt: update_cache=yes
+
+  - name: Install kubelet, kubeadm and kubectl
+    apt: name={{item}} state=latest
+    with_items:
+        - kubelet
+        - kubeadm
+        - kubectl

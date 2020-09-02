@@ -1,0 +1,9 @@
+---
+# Ensure required parameters are set
+- name: "Check for required variables."
+  include: variable-check.yml
+
+# Install OS specific Java
+- name: "Install Java for {{ ansible_os_family }}."
+  include: " {{ ansible_os_family }}-java.yml "
+  when: ansible_os_family == 'Debian' or ansible_os_family == 'RedHat'

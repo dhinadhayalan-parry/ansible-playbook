@@ -1,0 +1,7 @@
+---
+
+- name: "Invoking control plane installation."
+  import_playbook: master.yml
+
+- name: "Invoking workers plane installation."
+  import_playbook: workers.yml
